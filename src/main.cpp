@@ -55,28 +55,6 @@ void init_oled() {
   display.display();
 }
 
-void handleSerial() {
-  if (!Serial.available()) 
-    return;
-
-  String cmd = Serial.readStringUntil('\n');
-  cmd.trim();
-  
-  Serial.print("recived: ");
-  Serial.println(cmd);
-
-  if (cmd == "start") {
-    running = true;
-  } else if (cmd == "stop") {
-    running = false;
-  } else if ( cmd == "on"){
-    relay = true;
-  } else if ( cmd == "off"){
-    relay = false;
-  }
-
-}
-
 void show()
 {
   display.fillRect(0, 0, 128, 48, SSD1306_BLACK);
@@ -236,7 +214,6 @@ void setup() {
 }
 
 void loop() {
-  handleSerial();
   threadManager.thread_loop();
   request_manager.handle_request();
 }
