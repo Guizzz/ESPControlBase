@@ -6,15 +6,16 @@
 #include <thread_manager.h>
 #include <request_manager.h>
 
-#include "GY_21.h"
+#include <GY_21.h>
+#include <ChainableLED.h>
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 
 #define OLED_RESET     -1   // Reset pin # (or -1 if sharing Arduino reset pin)
 #define SCREEN_ADDRESS 0x3C // If not work please try 0x3D
-#define OLED_SDA D5         // Stock firmware shows wrong pins
-#define OLED_SCL D6         // They swap SDA with SCL ;)
+#define SDA D5         // Stock firmware shows wrong pins
+#define SCL D6         // They swap SDA with SCL ;)
 
 Adafruit_SSD1306 display;
 GY21 sensor;
@@ -22,13 +23,16 @@ ThreadManager threadManager;
 WiFiServer server(80);
 RequestManager request_manager("CasaGuizzz-Camere", "abcde12345", &server);
 
+#define DATA_PIN 7
+#define CLOCK_PIN 8
+
+ChainableLED leds(DATA_PIN, CLOCK_PIN, 1);
+
 
 bool running = false;
 short max_value = 100;
 
-short red = 0;
-short green = 0;
-short blue = 0;
+float hue = 0.0;
 
 bool prev_relay = false;
 bool relay = false;
@@ -55,100 +59,54 @@ void init_oled() {
   display.display();
 }
 
-void show()
-{
-  display.fillRect(0, 0, 128, 48, SSD1306_BLACK);
-  display.setCursor(0,0);
-  display.setTextSize(2);
-  display.setTextColor(SSD1306_WHITE);
-  display.println(red);
-  display.println(green);
-  display.println(blue);
-  display.display();
-}
+// void show()
+// {
+//   display.fillRect(0, 0, 128, 48, SSD1306_BLACK);
+//   display.setCursor(0,0);
+//   display.setTextSize(2);
+//   display.setTextColor(SSD1306_WHITE);
+//   display.println(red);
+//   display.println(green);
+//   display.println(blue);
+//   display.display();
+// }
 
 void shutdown()
 {
-  if(red ==  0 && green == 0 && blue == 0)
-    return;
-    
-  if (red > 0)
-    red --;
-  if (green > 0)
-    green --;
-  if (blue > 0)
-    blue --;
-  
-  show();
+    static float brightness = 0.5;
+
+    if (brightness <= 0.0)
+        return;
+
+    brightness -= 0.01;
+
+    if (brightness < 0.0)
+        brightness = 0.0;
+
+    leds.setColorHSB(0, hue, 1.0, brightness);
+    // show();
 }
 
 void manage_led()
 {
-  if (!running) 
-    return shutdown();
+    static float brightness = 0.5;
 
-  switch (phase) 
-  {
-    case 0: // red++
-      if (red >= max_value)
-      {
-        phase = 1;
-        break;
-      }
-      red++;
-      break;
-    
-    case 1: // blue--
-      if (blue <= 0) 
-      {
-        phase = 2;
-        break;
-      }
-      
-      blue--;
-      break;
-    
-    case 2: // green++
-      if (green >= max_value) 
-      {
-        phase = 3;
-        break;
-      }  
-      green++;
-      break;
-
-      
-    case 3: // red--
-      if (red <= 0) 
-      {
-        phase = 4;
-        break;
-      }
-      red--;
-      break;
-
-    case 4: // blue++
-      if (blue >= max_value) 
-      {
-        phase = 5;
-        break;
-      }
-      blue++;
-      break;
-      
-    case 5: // green--
-      if (green <= 0) 
-      {
-        phase = 0;
-        break;
-      }
-      green--;
-      break;
-
+    if (!running)
+    {
+        shutdown();
+        return;
     }
-        
-  show();
+
+    brightness = 0.5;
+
+    leds.setColorHSB(0, hue, 1.0, brightness);
+
+    hue += 0.002;
+
+    if (hue >= 1.0)
+        hue = 0.0;
 }
+
 
 void manage_relay()
 {
@@ -192,12 +150,15 @@ JsonDocument set_led(JsonDocument param)
 JsonDocument get_temp(JsonDocument param)
 {
     float temp = sensor.GY21_Temperature();
+    float hum = sensor.GY21_Humidity();
     JsonDocument ret;
     ret["temp"] = temp;
+    ret["hum"] = hum;
     return ret;
 }
 
-void setup() {
+void setup() 
+{
   Serial.begin(9600);
   Wire.begin(D5, D6);
   init_oled();
@@ -213,7 +174,8 @@ void setup() {
   threadManager.add_method( &manage_temp );
 }
 
-void loop() {
+void loop() 
+{
   threadManager.thread_loop();
   request_manager.handle_request();
 }
