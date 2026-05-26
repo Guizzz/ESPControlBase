@@ -23,21 +23,19 @@ ThreadManager threadManager;
 WiFiServer server(80);
 RequestManager request_manager("CasaGuizzz-Camere", "abcde12345", &server);
 
-#define DATA_PIN 7
-#define CLOCK_PIN 8
+#define DATA_PIN D7
+#define CLOCK_PIN D2
 
-ChainableLED leds(DATA_PIN, CLOCK_PIN, 1);
-
+ChainableLED leds(CLOCK_PIN, DATA_PIN, 1);
 
 bool running = false;
-short max_value = 100;
-
 float hue = 0.0;
+float brightness = 0;
+#define MAX_BRIGHT 0.5f
 
 bool prev_relay = false;
 bool relay = false;
 
-int phase = 0;
 
 void init_oled() {
   
@@ -53,32 +51,21 @@ void init_oled() {
   display.setTextSize(2);
   display.setTextColor(SSD1306_WHITE);
   display.setCursor(0, 0);
+  
+  NetInfo info = request_manager.get_net_info();
 
-  display.println("OLED READY:)");
-  display.println("");
+  display.println("OLED READY");
+  display.println(info.ip);
   display.display();
 }
 
-// void show()
-// {
-//   display.fillRect(0, 0, 128, 48, SSD1306_BLACK);
-//   display.setCursor(0,0);
-//   display.setTextSize(2);
-//   display.setTextColor(SSD1306_WHITE);
-//   display.println(red);
-//   display.println(green);
-//   display.println(blue);
-//   display.display();
-// }
 
 void shutdown()
 {
-    static float brightness = 0.5;
-
     if (brightness <= 0.0)
         return;
 
-    brightness -= 0.01;
+    brightness -= 0.02;
 
     if (brightness < 0.0)
         brightness = 0.0;
@@ -89,7 +76,6 @@ void shutdown()
 
 void manage_led()
 {
-    static float brightness = 0.5;
 
     if (!running)
     {
@@ -97,11 +83,15 @@ void manage_led()
         return;
     }
 
-    brightness = 0.5;
+    if ( brightness < MAX_BRIGHT){brightness += 0.02;}
+    if ( brightness >= MAX_BRIGHT){brightness = MAX_BRIGHT;}
 
     leds.setColorHSB(0, hue, 1.0, brightness);
-
     hue += 0.002;
+
+    Serial.print(hue);
+    Serial.print(" ");
+    Serial.println(brightness);
 
     if (hue >= 1.0)
         hue = 0.0;
@@ -157,13 +147,28 @@ JsonDocument get_temp(JsonDocument param)
     return ret;
 }
 
+void clk() {
+  digitalWrite(CLOCK_PIN, LOW);
+  delayMicroseconds(20);
+  digitalWrite(CLOCK_PIN, HIGH);
+  delayMicroseconds(20);
+}
+
+void sendByte(uint8_t b) {
+  for(int i=0;i<8;i++) {
+    digitalWrite(DATA_PIN, (b & 0x80));
+    clk();
+    b <<= 1;
+  }
+}
+
 void setup() 
 {
   Serial.begin(9600);
   Wire.begin(D5, D6);
-  init_oled();
   
   request_manager.init_request();
+  init_oled();
 
   request_manager.add_request("GET", "/get_temp", &get_temp);
   request_manager.add_request("POST", "/set_relay", &set_relay);
