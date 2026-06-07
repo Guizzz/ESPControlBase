@@ -21,9 +21,11 @@ class RequestManager
   WiFiServer* server;
   std::list<Request> requests_list;
 
+  String extract_path(String request);
+  String read_headers(WiFiClient* client, int* content_length, String* content_type);
   void send_header(WiFiClient* client, bool ok, String content_type);
   void web_page(WiFiClient* client);
-  JsonDocument parse_parameters(String request);
+  JsonDocument parse_parameters(String request, String body, String content_type);
 
   public:
     RequestManager(String ssid, String psw, WiFiServer* s);
