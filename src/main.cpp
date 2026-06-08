@@ -95,6 +95,7 @@ void manage_relay()
         return;
 
     prev_relay = relay;
+    digitalWrite(RELAY_PIN, relay ? HIGH : LOW);
 
     display.setCursor(0, 48);
     display.fillRect(0, 48, 128, 16, SSD1306_BLACK);
@@ -183,6 +184,9 @@ void setup()
 {
     Serial.begin(9600);
     Wire.begin(SDA, SCL);
+
+    pinMode(RELAY_PIN, OUTPUT);
+    digitalWrite(RELAY_PIN, LOW);
 
     // WiFi + MQTT (gestisce anche la connessione WiFi)
     mqtt_manager.begin();
