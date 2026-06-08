@@ -1,2 +1,2 @@
 # TempStation
-Esp32 temperature and humidity station
+ESP8266 temperature and humidity station
