@@ -191,28 +191,29 @@ void setup()
     pinMode(RELAY_PIN, OUTPUT);
     digitalWrite(RELAY_PIN, LOW);
 
-    // WiFi + MQTT (gestisce anche la connessione WiFi)
-    mqtt_manager.begin();
-
-    init_oled();
-
-    // Avvio server HTTP legacy
-    server.begin();
-
+    
     // ── Registrazione handler MQTT ──
     mqtt_manager.on_command("set_relay", &set_relay);
     mqtt_manager.on_command("set_led",   &set_led);
     mqtt_manager.on_status(&build_status);
-
+    
     // ── Registrazione route HTTP legacy ──
     request_manager.add_request("GET",  "/get_temp",  &get_temp);
     request_manager.add_request("POST", "/set_relay", &set_relay);
     request_manager.add_request("POST", "/set_led",   &set_led);
-
+    
     // ── Thread periodici ──
     threadManager.add_method(&manage_led, 50);
     threadManager.add_method(&manage_relay);
     threadManager.add_method(&manage_temp, 150);
+    
+    // WiFi + MQTT (gestisce anche la connessione WiFi)
+    mqtt_manager.begin();
+    
+    init_oled();
+    
+    // Avvio server HTTP legacy
+    server.begin();
 }
 
 // ── Loop ─────────────────────────────────────────────────────────
