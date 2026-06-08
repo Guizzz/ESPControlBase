@@ -127,15 +127,25 @@ void MqttManager::connect_wifi()
 
     WiFi.begin(_wifi_ssid, _wifi_psw);
 
-    while (WiFi.status() != WL_CONNECTED)
+    int attempts = 0;
+    while (WiFi.status() != WL_CONNECTED && attempts < 20)
     {
         delay(500);
         Serial.print(".");
+        attempts++;
     }
 
-    Serial.println();
-    Serial.print("WiFi connesso. IP: ");
-    Serial.println(WiFi.localIP());
+    if (WiFi.status() == WL_CONNECTED)
+    {
+        Serial.println();
+        Serial.print("WiFi connesso. IP: ");
+        Serial.println(WiFi.localIP());
+    }
+    else
+    {
+        Serial.println();
+        Serial.println("WiFi NON connesso. Continuo senza rete.");
+    }
 }
 
 // ── Connessione MQTT (con LWT) ────────────────────────────────────
