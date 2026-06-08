@@ -106,17 +106,21 @@ void manage_relay()
 void manage_temp()
 {
     static unsigned long last_read = 0;
-    static float last_val = 0;
+    static float last_val_t = 0;
+    static float last_val_h = 0;
     unsigned long now = millis();
 
     if (now - last_read >= 3000) {
-        last_val = sensor.GY21_Temperature();
+        last_val_t = sensor.GY21_Temperature();
+        last_val_h = sensor.GY21_Humidity();
         last_read = now;
     }
 
     display.setCursor(64, 48);
     display.fillRect(64, 48, 128, 16, SSD1306_BLACK);
-    display.print(last_val);
+    display.print(last_val_t);
+    display.setCursor(64, 56);
+    display.print(last_val_h);
     display.display();
 }
 
