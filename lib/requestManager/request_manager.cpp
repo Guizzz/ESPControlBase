@@ -1,46 +1,9 @@
 #include<request_manager.h>
 
 
-RequestManager::RequestManager(String ssid, String psw, WiFiServer *s)
+RequestManager::RequestManager(WiFiServer *s)
 {
-    this->ssid=ssid;
-    this->psw=psw;
     this->server=s;
-}
-
-void RequestManager::init_request()
-{
-  Serial.println("Starting...");
-  Serial.println("Inizializing request manager");
-  WiFi.begin(ssid, psw);
-  Serial.print("Connecting to Wifi:");
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("WiFi connected");
-  Serial.println("Server started");
-  (*server).begin();
-
-  Serial.print("IP Address of network: ");
-  Serial.println(WiFi.localIP());
-  Serial.print("Copy and paste the following URL: http://");
-  Serial.print(WiFi.localIP().toString());
-  Serial.println("/");
-
-  // Initialize SPIFFS
-  if(!SPIFFS.begin()){
-    Serial.println("An Error has occurred while mounting SPIFFS");
-    return;
-  }
-}
-
-NetInfo RequestManager::get_net_info()
-{
-    NetInfo info;
-    info.ssid= ssid;
-    info.ip = WiFi.localIP().toString();
-    return info;
 }
 
 void RequestManager::add_request(String method, String path, JsonDocument (*request_function)(JsonDocument param))

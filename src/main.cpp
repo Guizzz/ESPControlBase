@@ -19,7 +19,7 @@ GY21 sensor;
 // ── Gestori ───────────────────────────────────────────────────────
 ThreadManager threadManager;
 WiFiServer server(80);
-RequestManager request_manager(WIFI_SSID, WIFI_PSW, &server);
+RequestManager request_manager(&server);
 MqttManager mqtt_manager(
     DEVICE_ID, DEVICE_NAME, DEVICE_TYPE,
     WIFI_SSID, WIFI_PSW,

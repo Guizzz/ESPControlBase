@@ -9,28 +9,18 @@ struct Request
   JsonDocument (*request_function)(JsonDocument param);
 };
 
-struct NetInfo
-{
-  String ssid;
-  String ip;
-};
-
 class RequestManager
 {
-  String ssid, psw;
   WiFiServer* server;
   std::list<Request> requests_list;
 
   String extract_path(String request);
   String read_headers(WiFiClient* client, int* content_length, String* content_type);
   void send_header(WiFiClient* client, bool ok, String content_type);
-  void web_page(WiFiClient* client);
   JsonDocument parse_parameters(String request, String body, String content_type);
 
   public:
-    RequestManager(String ssid, String psw, WiFiServer* s);
-    void init_request();
-    NetInfo get_net_info();
+    RequestManager(WiFiServer* s);
     /*
     Add request to be handled by API server:
 
