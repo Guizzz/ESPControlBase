@@ -192,10 +192,6 @@ void setup()
     // Avvio server HTTP legacy
     server.begin();
 
-    // Inizializzazione SPIFFS
-    if (!SPIFFS.begin())
-        Serial.println("Errore montaggio SPIFFS");
-
     // ── Registrazione handler MQTT ──
     mqtt_manager.on_command("set_relay", &set_relay);
     mqtt_manager.on_command("set_led",   &set_led);

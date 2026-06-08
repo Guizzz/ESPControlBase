@@ -136,9 +136,6 @@ void RequestManager::handle_request()
         }
     }
 
-    if (path == "/" && params["method"] == "GET")
-        web_page(&client);
-    
     JsonDocument resp;
     resp["error"] = "Unknown request";
     String out;
@@ -158,31 +155,7 @@ void RequestManager::send_header(WiFiClient *client, bool ok, String content_typ
     (*client).println("");
 }
 
-void RequestManager::web_page(WiFiClient* client)
-{   
-    File file = SPIFFS.open("/basic.html", "r");
-    //TODO: IMPLEMENT SENSOR READING 
-    if(!file.available())
-    {
-        send_header(client, false, "text/html");
-        (*client).println("ERROR");
-        return;
-    }
 
-    String page = file.readString();
-    // JsonDocument resp = (*pin_manager).status();
-    // bool relay = resp["relay_status"].as<bool>();
-
-    // page.replace("\%status\%", relay?"ON":"OFF");
-
-    send_header(client, true, "text/html");
-    (*client).println(page);
-
-    delay(1);
-
-    Serial.println("Client disconnected");
-    Serial.println("");
-}
 
 void parse_urlencoded(String input, JsonDocument& doc)
 {
