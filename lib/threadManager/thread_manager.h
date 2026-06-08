@@ -3,17 +3,15 @@
 struct Thread
 {
     void (*function)();
+    unsigned long interval = 150;
+    unsigned long lastUpdate = 0;
 };
 
 class ThreadManager
 {
-
     std::list<Thread> thread_list;
-    unsigned long lastUpdate = 0;
-    unsigned long speed = 150;
 
 public:
     void thread_loop();
-
-    void add_method(void (*thread_func)());
+    void add_method(void (*thread_func)(), unsigned long interval = 150);
 };

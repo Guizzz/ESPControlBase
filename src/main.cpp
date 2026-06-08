@@ -62,7 +62,7 @@ void shutdown()
     if (brightness <= 0.0)
         return;
 
-    brightness -= 0.02;
+    brightness -= 0.007;
     if (brightness < 0.0)
         brightness = 0.0;
 
@@ -77,11 +77,11 @@ void manage_led()
         return;
     }
 
-    if (brightness < MAX_BRIGHT) brightness += 0.02;
+    if (brightness < MAX_BRIGHT) brightness += 0.007;
     if (brightness >= MAX_BRIGHT) brightness = MAX_BRIGHT;
 
     leds.setColorHSB(0, hue, 1.0, brightness);
-    hue += 0.002;
+    hue += 0.00067;
 
     if (hue >= 1.0)
         hue = 0.0;
@@ -206,9 +206,9 @@ void setup()
     request_manager.add_request("POST", "/set_led",   &set_led);
 
     // ── Thread periodici ──
-    threadManager.add_method(&manage_led);
+    threadManager.add_method(&manage_led, 50);
     threadManager.add_method(&manage_relay);
-    threadManager.add_method(&manage_temp);
+    threadManager.add_method(&manage_temp, 150);
 }
 
 // ── Loop ─────────────────────────────────────────────────────────
