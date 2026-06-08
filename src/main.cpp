@@ -48,12 +48,11 @@ void init_oled()
     }
 
     display.clearDisplay();
-    display.setTextSize(2);
+    display.setTextSize(1);
     display.setTextColor(SSD1306_WHITE);
     display.setCursor(0, 0);
-
-    display.println("OLED READY");
     display.println(WiFi.localIP().toString());
+    display.println(mqtt_manager.is_connected()?"MQTT Connected" : "MQTT Connection Error");
     display.display();
 }
 

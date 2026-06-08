@@ -153,7 +153,7 @@ void MqttManager::connect_mqtt()
 {
     if (WiFi.status() != WL_CONNECTED) return;
 
-    Serial.print("Connessione MQTT a ");
+    Serial.print("Connection to MQTT at ");
     Serial.print(_mqtt_host);
     Serial.print(":");
     Serial.println(_mqtt_port);
@@ -173,12 +173,12 @@ void MqttManager::connect_mqtt()
 
     if (!connected)
     {
-        Serial.print("Connessione MQTT fallita, rc=");
+        Serial.print("MQTT Connection Error, rc=");
         Serial.println(_mqtt_client.state());
         return;
     }
 
-    Serial.println("MQTT connesso!");
+    Serial.println("MQTT Connected!");
 
     // Prima connessione: publish announce + online
     if (_first_connect)
