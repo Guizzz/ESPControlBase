@@ -1,6 +1,6 @@
 #include <ESP8266WiFi.h>
 #include <ArduinoJson.h>
-#include <list>
+#include <vector>
 
 struct Request
 {
@@ -12,7 +12,7 @@ struct Request
 class RequestManager
 {
   WiFiServer* server;
-  std::list<Request> requests_list;
+  std::vector<Request> requests_list;
 
   String extract_path(String request);
   String read_headers(WiFiClient* client, int* content_length, String* content_type);

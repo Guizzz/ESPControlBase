@@ -1,4 +1,4 @@
-#include <list>
+#include <vector>
 
 struct Thread
 {
@@ -9,7 +9,7 @@ struct Thread
 
 class ThreadManager
 {
-    std::list<Thread> thread_list;
+    std::vector<Thread> thread_list;
 
 public:
     void thread_loop();

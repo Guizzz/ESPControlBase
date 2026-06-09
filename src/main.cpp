@@ -1,8 +1,7 @@
 #include <Arduino.h>
 #include <Wire.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
 
+#include <display_manager.h>
 #include <thread_manager.h>
 #include <request_manager.h>
 #include <mqtt_manager.h>
@@ -11,7 +10,7 @@
 #include <config.h>
 
 // ── Display OLED ──────────────────────────────────────────────────
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+DisplayManager display_manager(DISPLAY_TIMEOUT * 1000UL);
 
 // ── Sensori ───────────────────────────────────────────────────────
 GY21 sensor;
@@ -38,24 +37,6 @@ float brightness = 0;
 bool prev_relay = false;
 bool relay = false;
 
-// ── OLED ──────────────────────────────────────────────────────────
-void init_oled()
-{
-    if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS))
-    {
-        Serial.println(F("SSD1306 allocation failed"));
-        return;
-    }
-
-    display.clearDisplay();
-    display.setTextSize(1);
-    display.setTextColor(SSD1306_WHITE);
-    display.setCursor(0, 0);
-    display.println(WiFi.localIP().toString());
-    display.println(mqtt_manager.is_connected()?"MQTT Connected" : "MQTT Connection Error");
-    display.display();
-}
-
 // ── Gestione LED ──────────────────────────────────────────────────
 void shutdown()
 {
@@ -74,17 +55,20 @@ void manage_led()
     if (!running)
     {
         shutdown();
-        return;
+    }
+    else
+    {
+        if (brightness < MAX_BRIGHT) brightness += 0.007;
+        if (brightness >= MAX_BRIGHT) brightness = MAX_BRIGHT;
+
+        leds.setColorHSB(0, hue, 1.0, brightness);
+        hue += 0.00067;
+
+        if (hue >= 1.0)
+            hue = 0.0;
     }
 
-    if (brightness < MAX_BRIGHT) brightness += 0.007;
-    if (brightness >= MAX_BRIGHT) brightness = MAX_BRIGHT;
-
-    leds.setColorHSB(0, hue, 1.0, brightness);
-    hue += 0.00067;
-
-    if (hue >= 1.0)
-        hue = 0.0;
+    display_manager.show_led(running);
 }
 
 // ── Gestione Relay ────────────────────────────────────────────────
@@ -95,11 +79,7 @@ void manage_relay()
 
     prev_relay = relay;
     digitalWrite(RELAY_PIN, relay ? HIGH : LOW);
-
-    display.setCursor(0, 48);
-    display.fillRect(0, 48, 128, 16, SSD1306_BLACK);
-    display.print(relay ? "ON " : "OFF");
-    display.display();
+    display_manager.show_relay(relay);
 }
 
 // ── Gestione Temperatura (display) ────────────────────────────────
@@ -116,12 +96,26 @@ void manage_temp()
         last_read = now;
     }
 
-    display.setCursor(64, 48);
-    display.fillRect(64, 48, 128, 16, SSD1306_BLACK);
-    display.print(last_val_t);
-    display.setCursor(64, 56);
-    display.print(last_val_h);
-    display.display();
+    display_manager.show_temp(last_val_t, last_val_h);
+}
+
+// ── Flush Display (thread periodico) ────────────────────────────
+void update_display()
+{
+    if (digitalRead(FLASH_BUTTON) == LOW)
+        display_manager.activity();
+
+    static bool prev_mqtt = false;
+    bool mqtt_ok = mqtt_manager.is_connected();
+    if (mqtt_ok != prev_mqtt)
+    {
+        prev_mqtt = mqtt_ok;
+        display_manager.show_status(
+            WiFi.localIP().toString().c_str(),
+            mqtt_ok
+        );
+    }
+    display_manager.update();
 }
 
 // ── Costruttore payload status per MQTT ──────────────────────────
@@ -190,7 +184,7 @@ void setup()
 
     pinMode(RELAY_PIN, OUTPUT);
     digitalWrite(RELAY_PIN, LOW);
-
+    pinMode(FLASH_BUTTON, INPUT_PULLUP);
     
     // ── Registrazione handler MQTT ──
     mqtt_manager.on_command("set_relay", &set_relay);
@@ -206,11 +200,17 @@ void setup()
     threadManager.add_method(&manage_led, 50);
     threadManager.add_method(&manage_relay);
     threadManager.add_method(&manage_temp, 150);
+    threadManager.add_method(&update_display, 500);
     
     // WiFi + MQTT (gestisce anche la connessione WiFi)
     mqtt_manager.begin();
     
-    init_oled();
+    display_manager.begin();
+    display_manager.show_startup(
+        WiFi.localIP().toString().c_str(),
+        mqtt_manager.is_connected()
+    );
+    display_manager.show_relay(relay);
     
     // Avvio server HTTP legacy
     server.begin();
