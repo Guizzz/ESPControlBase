@@ -99,12 +99,32 @@ void manage_temp()
     display_manager.show_temp(last_val_t, last_val_h);
 }
 
+// ── Pulsante (debounce + fronte di discesa) ─────────────────────
+void manage_button()
+{
+    static bool last_reading = HIGH;
+    static bool last_stable = HIGH;
+    static unsigned long last_change = 0;
+
+    bool curr = digitalRead(FLASH_BUTTON);
+
+    if (curr != last_reading)
+    {
+        last_change = millis();
+        last_reading = curr;
+    }
+
+    if (millis() - last_change >= 50)
+    {
+        if (last_stable == HIGH && last_reading == LOW)
+            display_manager.activity();
+        last_stable = last_reading;
+    }
+}
+
 // ── Flush Display (thread periodico) ────────────────────────────
 void update_display()
 {
-    if (digitalRead(FLASH_BUTTON) == LOW)
-        display_manager.activity();
-
     static bool prev_mqtt = false;
     bool mqtt_ok = mqtt_manager.is_connected();
     if (mqtt_ok != prev_mqtt)
@@ -185,8 +205,12 @@ void setup()
     pinMode(RELAY_PIN, OUTPUT);
     digitalWrite(RELAY_PIN, LOW);
     pinMode(FLASH_BUTTON, INPUT_PULLUP);
-    
+
+    display_manager.begin();
+    display_manager.show_message("Avvio TempStation...");
+
     // ── Registrazione handler MQTT ──
+    display_manager.show_message("Registro handlers...");
     mqtt_manager.on_command("set_relay", &set_relay);
     mqtt_manager.on_command("set_led",   &set_led);
     mqtt_manager.on_status(&build_status);
@@ -199,13 +223,16 @@ void setup()
     // ── Thread periodici ──
     threadManager.add_method(&manage_led, 50);
     threadManager.add_method(&manage_relay);
+    threadManager.add_method(&manage_button, 50);
     threadManager.add_method(&manage_temp, 150);
     threadManager.add_method(&update_display, 500);
     
     // WiFi + MQTT (gestisce anche la connessione WiFi)
+    display_manager.show_message("Connessione WiFi...");
     mqtt_manager.begin();
     
-    display_manager.begin();
+    display_manager.show_message("Avvio completato!");
+
     display_manager.show_startup(
         WiFi.localIP().toString().c_str(),
         mqtt_manager.is_connected()

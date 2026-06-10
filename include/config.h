@@ -31,7 +31,7 @@
 #define SCL             D6
 #define LED_DATA        D7
 #define LED_CLOCK       D2
-#define RELAY_PIN       D3          // da verificare / definire
+#define RELAY_PIN       D1          // GPIO5
 #define FLASH_BUTTON    D3          // GPIO0 - tasto flash integrato, LOW = premuto
 
 #endif

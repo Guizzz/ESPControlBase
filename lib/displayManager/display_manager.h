@@ -10,6 +10,7 @@ public:
     DisplayManager(unsigned long timeout_ms = 5000);
 
     void begin();
+    void show_message(const char* msg);
     void show_startup(const char* ip, bool mqtt_connected);
     void show_status(const char* ip, bool mqtt_connected);
     void show_temp(float temperature, float humidity);

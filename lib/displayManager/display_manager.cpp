@@ -22,6 +22,14 @@ void DisplayManager::begin()
     _display.display();
 }
 
+void DisplayManager::show_message(const char* msg)
+{
+    _display.clearDisplay();
+    _display.setCursor(0, 0);
+    _display.println(msg);
+    _display.display();
+}
+
 void DisplayManager::show_startup(const char* ip, bool mqtt_connected)
 {
     _display.clearDisplay();
