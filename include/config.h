@@ -11,7 +11,7 @@
 #define WIFI_PSW        "abcde12345"
 
 // ── MQTT ──────────────────────────────────────────────────────────
-#define MQTT_HOST       "raspberrypi.local"
+#define MQTT_HOST       "bolide.local"
 #define MQTT_PORT       1883
 
 // ── Sensori ───────────────────────────────────────────────────────
@@ -25,6 +25,18 @@
 
 // ── Display ───────────────────────────────────────────────────────
 #define DISPLAY_TIMEOUT 5          // secondi prima dello spegnimento auto
+
+// ── Flag hardware ─────────────────────────────────────────────────
+#define ENABLE_DISPLAY      1
+#define ENABLE_SENSOR_GY21  1
+#define ENABLE_LED          1
+#define ENABLE_RELAY        1
+
+// ── Relay ─────────────────────────────────────────────────────────
+#define RELAY_BISTABLE      0
+#define RELAY_MOMENTARY     1
+#define RELAY_TYPE          RELAY_BISTABLE   // 0 = bistabile, 1 = momentary
+#define RELAY_PULSE_MS      500              // durata impulso (solo MOMENTARY)
 
 // ── Pin ───────────────────────────────────────────────────────────
 #define SDA             D5
