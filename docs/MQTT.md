@@ -31,7 +31,7 @@ Pubblicato una volta al primo collegamento MQTT. Contiene la lista di sensori, a
   "sensors": ["temperature", "humidity"],
   "actuators": [
     {"name": "set_pompa", "label": "pompa"},
-    {"name": "set_led",   "label": "set_led"}
+    {"name": "set_led_mensola",   "label": "led_mensola"}
   ],
   "interval": 5
 }

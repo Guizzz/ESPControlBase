@@ -41,6 +41,10 @@
 #define RELAY_TYPE          RELAY_BISTABLE   // 0 = bistabile, 1 = momentary
 #define RELAY_PULSE_MS      500              // durata impulso (solo MOMENTARY)
 
+// ── Led ───────────────────────────────────────────────────────────
+#define LED_NAME          "led_mensola"         // nome display/MQTT
+#define LED_CMD           "set_" LED_NAME       // command name auto-derivato
+
 // ── Pin ───────────────────────────────────────────────────────────
 #define SDA             D5
 #define SCL             D6

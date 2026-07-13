@@ -285,7 +285,7 @@ void setup()
     mqtt_manager.on_command(RELAY_CMD, &set_relay, RELAY_NAME);
     #endif
     #if ENABLE_LED
-    mqtt_manager.on_command("set_led",   &set_led);
+    mqtt_manager.on_command(LED_CMD, &set_led, LED_NAME);
     #endif
     mqtt_manager.on_status(&build_status);
     
