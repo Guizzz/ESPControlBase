@@ -13,7 +13,8 @@ MqttManager::MqttManager(
     const char* wifi_psw,
     const char* mqtt_host,
     uint16_t mqtt_port,
-    unsigned long status_interval
+    unsigned long status_interval,
+    const char* mqtt_topic_prefix
 )
     : _device_id(device_id)
     , _device_name(device_name)
@@ -23,6 +24,7 @@ MqttManager::MqttManager(
     , _mqtt_host(mqtt_host)
     , _mqtt_port(mqtt_port)
     , _status_interval(status_interval)
+    , _mqtt_topic_prefix(mqtt_topic_prefix)
     , _mqtt_client(_wifi_client)
 {
     _instance = this;
@@ -72,10 +74,11 @@ void MqttManager::on_status(JsonDocument (*status_builder)())
     _status_builder = status_builder;
 }
 
-void MqttManager::on_command(const char* cmd, JsonDocument (*handler)(JsonDocument param))
+void MqttManager::on_command(const char* cmd, JsonDocument (*handler)(JsonDocument param), const char* label)
 {
     CommandHandler ch;
     ch.cmd = cmd;
+    ch.label = label ? label : cmd;
     ch.handler = handler;
     _command_handlers.push_back(ch);
 }
@@ -89,7 +92,7 @@ void MqttManager::publish_status()
     JsonDocument doc = _status_builder();
 
     char topic[64];
-    snprintf(topic, sizeof(topic), "guiver/%s/status", _device_id.c_str());
+    snprintf(topic, sizeof(topic), "%s/%s/status", _mqtt_topic_prefix.c_str(), _device_id.c_str());
     publish_json(topic, doc, false);
 }
 
@@ -104,7 +107,7 @@ void MqttManager::publish_response(const char* status, JsonDocument* state)
         doc["state"] = *state;
 
     char topic[64];
-    snprintf(topic, sizeof(topic), "guiver/%s/response", _device_id.c_str());
+    snprintf(topic, sizeof(topic), "%s/%s/response", _mqtt_topic_prefix.c_str(), _device_id.c_str());
     publish_json(topic, doc, false);
 }
 
@@ -160,7 +163,7 @@ void MqttManager::connect_mqtt()
 
     // Configura LWT
     char will_topic[64];
-    snprintf(will_topic, sizeof(will_topic), "guiver/%s/online", _device_id.c_str());
+    snprintf(will_topic, sizeof(will_topic), "%s/%s/online", _mqtt_topic_prefix.c_str(), _device_id.c_str());
 
     // Tenta connessione
     bool connected = _mqtt_client.connect(
@@ -192,7 +195,7 @@ void MqttManager::connect_mqtt()
     if (!_command_handlers.empty())
     {
         char cmd_topic[64];
-        snprintf(cmd_topic, sizeof(cmd_topic), "guiver/%s/command", _device_id.c_str());
+        snprintf(cmd_topic, sizeof(cmd_topic), "%s/%s/command", _mqtt_topic_prefix.c_str(), _device_id.c_str());
         _mqtt_client.subscribe(cmd_topic, 1);
         Serial.print("Sottoscritto a ");
         Serial.println(cmd_topic);
@@ -221,14 +224,14 @@ void MqttManager::publish_announce()
         {
             JsonObject act = actuators.add<JsonObject>();
             act["name"] = ch.cmd;
-            act["label"] = ch.cmd;  // label uguale al nome per semplicità
+            act["label"] = ch.label;
         }
     }
 
     doc["interval"] = _status_interval;
 
     char topic[64];
-    snprintf(topic, sizeof(topic), "guiver/%s/announce", _device_id.c_str());
+    snprintf(topic, sizeof(topic), "%s/%s/announce", _mqtt_topic_prefix.c_str(), _device_id.c_str());
     publish_json(topic, doc, true);
 
     Serial.println("Announce pubblicato");
@@ -238,7 +241,7 @@ void MqttManager::publish_announce()
 void MqttManager::publish_online()
 {
     char topic[64];
-    snprintf(topic, sizeof(topic), "guiver/%s/online", _device_id.c_str());
+    snprintf(topic, sizeof(topic), "%s/%s/online", _mqtt_topic_prefix.c_str(), _device_id.c_str());
     _mqtt_client.publish(topic, "1", true);
 
     Serial.println("Online = 1 pubblicato");
@@ -290,6 +293,7 @@ void MqttManager::on_mqtt_message(char* topic, byte* payload, unsigned int lengt
                 state[kv.key().c_str()] = kv.value();
 
             publish_response(status, &state);
+            publish_status();
             return;
         }
     }

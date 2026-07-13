@@ -60,11 +60,12 @@ void DisplayManager::show_temp(float temperature, float humidity)
     _display.println(F("%"));
 }
 
-void DisplayManager::show_relay(bool state)
+void DisplayManager::show_relay(bool state, const char* name)
 {
     _display.fillRect(0, 48, 58, 8, SSD1306_BLACK);
     _display.setCursor(0, 48);
-    _display.print(F("Relay: "));
+    _display.print(name);
+    _display.print(F(": "));
     _display.print(state ? F("ON") : F("OFF"));
 }
 

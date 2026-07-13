@@ -1,6 +1,6 @@
-# TempStation — AGENTS.md
+# ESPControlBase — AGENTS.md
 
-ESP8266 temperature/humidity station. PlatformIO, Arduino framework, board `esp12e`.
+Generic ESP8266 firmware for home automation. PlatformIO, Arduino framework, board `esp12e`.
 
 ## Build & dev
 
@@ -40,5 +40,5 @@ pio test                 # test runner (test/ is empty scaffold)
 
 ## Communication
 
-- **MQTT**: connects to `raspberrypi.local:1883`, publishes status JSON every 5 s, subscribes to commands `set_relay` (bool `value` / toggle) and `set_led` (bool `value` / toggle).
+- **MQTT**: connects to `raspberrypi.local:1883`, publishes status JSON every 5 s, subscribes to commands `set_{RELAY_NAME}` (bool `value` / toggle) and `set_led` (bool `value` / toggle). Relay name is configurable via `RELAY_NAME` in `config.h`.
 - **HTTP** (legacy): `GET /get_temp` → `{temp, hum}`, `POST /set_relay` and `POST /set_led` accept JSON body with optional `value` field.

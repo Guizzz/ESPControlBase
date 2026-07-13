@@ -14,7 +14,7 @@ public:
     void show_startup(const char* ip, bool mqtt_connected);
     void show_status(const char* ip, bool mqtt_connected);
     void show_temp(float temperature, float humidity);
-    void show_relay(bool state);
+    void show_relay(bool state, const char* name = "relay");
     void show_led(bool state);
     void activity();
     void update();

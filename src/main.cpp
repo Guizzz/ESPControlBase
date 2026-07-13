@@ -36,7 +36,8 @@ MqttManager mqtt_manager(
     DEVICE_ID, DEVICE_NAME, DEVICE_TYPE,
     WIFI_SSID, WIFI_PSW,
     MQTT_HOST, MQTT_PORT,
-    STATUS_INTERVAL
+    STATUS_INTERVAL,
+    MQTT_TOPIC_PREFIX
 );
 
 // ── LED RGB ───────────────────────────────────────────────────────
@@ -111,7 +112,7 @@ void manage_relay()
     prev_relay = relay;
     digitalWrite(RELAY_PIN, relay ? HIGH : LOW);
     #if ENABLE_DISPLAY
-    display_manager.show_relay(relay);
+    display_manager.show_relay(relay, RELAY_NAME);
     #endif
 }
 #endif
@@ -202,7 +203,7 @@ JsonDocument build_status()
     #endif
 
     #if ENABLE_RELAY
-    doc["relay"]       = relay;
+    doc[RELAY_NAME]       = relay;
     #endif
 
     #if ENABLE_LED
@@ -227,7 +228,7 @@ JsonDocument set_relay(JsonDocument param)
     #endif
 
     JsonDocument ret;
-    ret["relay"] = relay;
+    ret[RELAY_NAME] = relay;
     return ret;
 }
 #endif
@@ -273,7 +274,7 @@ void setup()
 
     #if ENABLE_DISPLAY
     display_manager.begin();
-    display_manager.show_message("Avvio TempStation...");
+    display_manager.show_message("Avvio ESPControlBase...");
     #endif
 
     // ── Registrazione handler MQTT ──
@@ -281,7 +282,7 @@ void setup()
     display_manager.show_message("Registro handlers...");
     #endif
     #if ENABLE_RELAY
-    mqtt_manager.on_command("set_relay", &set_relay);
+    mqtt_manager.on_command(RELAY_CMD, &set_relay, RELAY_NAME);
     #endif
     #if ENABLE_LED
     mqtt_manager.on_command("set_led",   &set_led);
@@ -328,7 +329,7 @@ void setup()
         mqtt_manager.is_connected()
     );
     #if ENABLE_RELAY
-    display_manager.show_relay(relay);
+    display_manager.show_relay(relay, RELAY_NAME);
     #endif
     #endif
     

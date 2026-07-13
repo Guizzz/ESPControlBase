@@ -10,6 +10,7 @@
 struct CommandHandler
 {
     String cmd;
+    String label;
     JsonDocument (*handler)(JsonDocument param);
 };
 
@@ -24,7 +25,8 @@ public:
         const char* wifi_psw,
         const char* mqtt_host,
         uint16_t mqtt_port,
-        unsigned long status_interval = 60
+        unsigned long status_interval = 60,
+        const char* mqtt_topic_prefix = "guiver"
     );
 
     // Avvia WiFi e connessione MQTT
@@ -37,7 +39,7 @@ public:
     void on_status(JsonDocument (*status_builder)());
 
     // Registra un handler per un comando MQTT
-    void on_command(const char* cmd, JsonDocument (*handler)(JsonDocument param));
+    void on_command(const char* cmd, JsonDocument (*handler)(JsonDocument param), const char* label = nullptr);
 
     // Forza pubblicazione immediata dello status
     void publish_status();
@@ -58,6 +60,7 @@ private:
     String _mqtt_host;
     uint16_t _mqtt_port;
     unsigned long _status_interval;
+    String _mqtt_topic_prefix;
 
     // ── Client ────────────────────────────────────────────────────
     WiFiClient _wifi_client;

@@ -2,9 +2,9 @@
 #define CONFIG_H
 
 // ── Identità dispositivo ──────────────────────────────────────────
-#define DEVICE_ID       "temp_station"
-#define DEVICE_NAME     "TempStation"
-#define DEVICE_TYPE     "temperature"
+#define DEVICE_ID       "esp_control_base"
+#define DEVICE_NAME     "ESPControlBase"
+#define DEVICE_TYPE     "generic"
 
 // ── WiFi ──────────────────────────────────────────────────────────
 #define WIFI_SSID       "CasaGuizzz-Camere"
@@ -13,6 +13,7 @@
 // ── MQTT ──────────────────────────────────────────────────────────
 #define MQTT_HOST       "bolide.local"
 #define MQTT_PORT       1883
+#define MQTT_TOPIC_PREFIX "guiver"           // prefisso topic MQTT
 
 // ── Sensori ───────────────────────────────────────────────────────
 #define STATUS_INTERVAL 5          // secondi tra publish status
@@ -33,6 +34,8 @@
 #define ENABLE_RELAY        1
 
 // ── Relay ─────────────────────────────────────────────────────────
+#define RELAY_NAME          "pompa"             // nome display/MQTT
+#define RELAY_CMD           "set_" RELAY_NAME   // command name auto-derivato
 #define RELAY_BISTABLE      0
 #define RELAY_MOMENTARY     1
 #define RELAY_TYPE          RELAY_BISTABLE   // 0 = bistabile, 1 = momentary
