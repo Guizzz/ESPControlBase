@@ -18,6 +18,10 @@
 #include <ChainableLED.h>
 #endif
 
+#if ENABLE_OTA
+#include <update_fw_manager.h>
+#endif
+
 // ── Display OLED ──────────────────────────────────────────────────
 #if ENABLE_DISPLAY
 DisplayManager display_manager(DISPLAY_TIMEOUT * 1000UL);
@@ -39,6 +43,10 @@ MqttManager mqtt_manager(
     STATUS_INTERVAL,
     MQTT_TOPIC_PREFIX
 );
+
+#if ENABLE_OTA
+UpdateFWManager ota_manager;
+#endif
 
 // ── LED RGB ───────────────────────────────────────────────────────
 #if ENABLE_LED
@@ -320,6 +328,10 @@ void setup()
     display_manager.show_message("Connessione WiFi...");
     #endif
     mqtt_manager.begin();
+
+    #if ENABLE_OTA
+    ota_manager.begin(OTA_HOSTNAME);
+    #endif
     
     #if ENABLE_DISPLAY
     display_manager.show_message("Avvio completato!");
@@ -343,4 +355,7 @@ void loop()
     threadManager.thread_loop();
     request_manager.handle_request();
     mqtt_manager.loop();
+    #if ENABLE_OTA
+    ota_manager.handle();
+    #endif
 }

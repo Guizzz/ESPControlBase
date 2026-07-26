@@ -32,6 +32,10 @@
 #define ENABLE_SENSOR_GY21  1
 #define ENABLE_LED          1
 #define ENABLE_RELAY        1
+#define ENABLE_OTA          1
+
+// ── OTA ────────────────────────────────────────────────────────
+#define OTA_HOSTNAME        "esp_control_base"
 
 // ── Relay ─────────────────────────────────────────────────────────
 #define RELAY_NAME          "pompa"             // nome display/MQTT

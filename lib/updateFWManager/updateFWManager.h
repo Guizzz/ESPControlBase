@@ -1,5 +1,0 @@
-
-class UpdateFWManager {
-public:
-    UpdateFWManager();
-};
