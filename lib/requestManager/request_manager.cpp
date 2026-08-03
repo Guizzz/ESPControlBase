@@ -60,12 +60,20 @@ void RequestManager::handle_request()
     if (!client)
         return;
 
+    client.setTimeout(1000);
+
     Serial.println("Waiting for new client");
 
-    while (!client.available()) {
+    unsigned long wait_start = millis();
+    while (!client.available() && client.connected())
+    {
+        if (millis() - wait_start > 2000)
+            return;
         delay(1);
     }
-    
+    if (!client.available())
+        return;
+
     String request = client.readStringUntil('\r');
     Serial.println(request);
 
@@ -76,9 +84,15 @@ void RequestManager::handle_request()
     String body = "";
     if (content_length > 0)
     {
+        unsigned long body_start = millis();
         for (int i = 0; i < content_length; i++)
         {
-            while (!client.available()) { delay(1); }
+            while (!client.available())
+            {
+                if (!client.connected() || millis() - body_start > 2000)
+                    return;
+                delay(1);
+            }
             body += (char)client.read();
         }
     }

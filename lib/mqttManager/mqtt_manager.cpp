@@ -156,6 +156,29 @@ void MqttManager::connect_mqtt()
 {
     if (WiFi.status() != WL_CONNECTED) return;
 
+    // Probe rapida con timeout: se il broker non e raggiungibile si esce
+    // subito, evitando di bloccare il loop (e l'OTA) per l'intero
+    // timeout di connessione di WiFiClient. setTimeout() limita qui
+    // sia la risoluzione DNS sia la connect TCP (ClientContext).
+    IPAddress broker_ip;
+    if (!broker_ip.fromString(_mqtt_host.c_str()))
+    {
+        if (!WiFi.hostByName(_mqtt_host.c_str(), broker_ip, 2000))
+        {
+            Serial.println("MQTT host non risolvibile");
+            return;
+        }
+    }
+
+    _wifi_client.setTimeout(2000);
+    if (!_wifi_client.connect(broker_ip, _mqtt_port))
+    {
+        _wifi_client.stop();
+        Serial.println("MQTT host non raggiungibile");
+        return;
+    }
+    _wifi_client.stop();
+
     Serial.print("Connection to MQTT at ");
     Serial.print(_mqtt_host);
     Serial.print(":");

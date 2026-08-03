@@ -1,9 +1,13 @@
 #include "update_fw_manager.h"
+#include <config.h>
 
 UpdateFWManager::UpdateFWManager() {}
 
 void UpdateFWManager::begin(const char* hostname) {
     ArduinoOTA.setHostname(hostname);
+    #ifdef OTA_PASSWORD
+    ArduinoOTA.setPassword(OTA_PASSWORD);
+    #endif
     setup_callbacks();
     ArduinoOTA.begin();
     Serial.println("[OTA] ArduinoOTA avviato");

@@ -352,10 +352,10 @@ void setup()
 // ── Loop ─────────────────────────────────────────────────────────
 void loop()
 {
-    threadManager.thread_loop();
-    request_manager.handle_request();
-    mqtt_manager.loop();
     #if ENABLE_OTA
     ota_manager.handle();
     #endif
+    threadManager.thread_loop();
+    request_manager.handle_request();
+    mqtt_manager.loop();
 }

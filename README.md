@@ -127,7 +127,12 @@ Richiede [PlatformIO](https://platformio.org/).
 pio run                  # build
 pio run -t upload        # build + upload via seriale
 pio run -t monitor       # seriale monitor (9600 baud)
+pio run -e esp12e_ota -t upload   # build + upload via WiFi (OTA, senza USB)
 ```
+
+L'upload remoto (`esp12e_ota`) usa ArduinoOTA sulla porta 8266 verso l'IP in `platformio.ini` (`upload_port`) con autenticazione (`--auth`, stessa password di `OTA_PASSWORD` in `include/config.h`). La scheda deve essere accesa e con firmware funzionante, sulla stessa rete. Il primo flash da scheda vergine o firmware non avviabile va fatto via seriale tenendo premuto il tasto FLASH all'accensione (nessun auto-reset cablato).
+
+Se l'IP della scheda cambia (DHCP), aggiornare `upload_port` nell'env `esp12e_ota`.
 
 ---
 
