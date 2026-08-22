@@ -18,9 +18,7 @@
 #include <ChainableLED.h>
 #endif
 
-#if ENABLE_OTA
 #include <update_fw_manager.h>
-#endif
 
 // ── Display OLED ──────────────────────────────────────────────────
 #if ENABLE_DISPLAY
@@ -44,9 +42,7 @@ MqttManager mqtt_manager(
     MQTT_TOPIC_PREFIX
 );
 
-#if ENABLE_OTA
 UpdateFWManager ota_manager;
-#endif
 
 // ── LED RGB ───────────────────────────────────────────────────────
 #if ENABLE_LED
@@ -284,11 +280,6 @@ void setup()
     display_manager.begin();
     display_manager.show_message("Avvio ESPControlBase...");
     #endif
-
-    // ── Registrazione handler MQTT ──
-    #if ENABLE_DISPLAY
-    display_manager.show_message("Registro handlers...");
-    #endif
     #if ENABLE_RELAY
     mqtt_manager.on_command(RELAY_CMD, &set_relay, RELAY_NAME);
     #endif
@@ -315,24 +306,19 @@ void setup()
     #if ENABLE_RELAY
     threadManager.add_method(&manage_relay);
     #endif
-    threadManager.add_method(&manage_button, 50);
     #if ENABLE_SENSOR_GY21
     threadManager.add_method(&manage_temp, 150);
     #endif
     #if ENABLE_DISPLAY
+    threadManager.add_method(&manage_button, 50);
     threadManager.add_method(&update_display, 500);
-    #endif
-    
-    // WiFi + MQTT (gestisce anche la connessione WiFi)
-    #if ENABLE_DISPLAY
     display_manager.show_message("Connessione WiFi...");
     #endif
+
     mqtt_manager.begin();
 
-    #if ENABLE_OTA
     ota_manager.begin(OTA_HOSTNAME);
-    #endif
-    
+
     #if ENABLE_DISPLAY
     display_manager.show_message("Avvio completato!");
 
@@ -352,9 +338,7 @@ void setup()
 // ── Loop ─────────────────────────────────────────────────────────
 void loop()
 {
-    #if ENABLE_OTA
     ota_manager.handle();
-    #endif
     threadManager.thread_loop();
     request_manager.handle_request();
     mqtt_manager.loop();

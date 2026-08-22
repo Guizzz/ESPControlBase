@@ -74,6 +74,10 @@ private:
     unsigned long _last_status = 0;
     unsigned long _last_reconnect_attempt = 0;
 
+    // ── Blink status led (publish MQTT) ───────────────────────────
+    bool _led_blinking = false;
+    unsigned long _led_off_at = 0;
+
     // ── Flag ──────────────────────────────────────────────────────
     bool _first_connect = true;
     bool _subscribed = false;
@@ -83,6 +87,8 @@ private:
     void connect_mqtt();
     void publish_announce();
     void publish_online();
+    void start_status_led_blink();
+    void update_status_led();
 
     // Callback MQTT statica (PubSubClient richiede funzione libera)
     static MqttManager* _instance;

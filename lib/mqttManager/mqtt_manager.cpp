@@ -1,4 +1,5 @@
 #include "mqtt_manager.h"
+#include <config.h>
 #include <Arduino.h>
 
 // ── Inizializzazione puntatore statico per callback ───────────────
@@ -33,6 +34,15 @@ MqttManager::MqttManager(
 // ── begin ─────────────────────────────────────────────────────────
 void MqttManager::begin()
 {
+    #if ENABLE_STATUS_LED
+    pinMode(STATUS_LED_PIN, OUTPUT);
+
+    // Lampo di verifica all'avvio (rimuovere dopo conferma)
+    digitalWrite(STATUS_LED_PIN, LOW);   // acceso
+    delay(200);
+    digitalWrite(STATUS_LED_PIN, HIGH);  // spento
+    #endif
+
     connect_wifi();
 
     _mqtt_client.setServer(_mqtt_host.c_str(), _mqtt_port);
@@ -45,6 +55,8 @@ void MqttManager::begin()
 // ── loop ──────────────────────────────────────────────────────────
 void MqttManager::loop()
 {
+    update_status_led();
+
     if (!_mqtt_client.connected())
     {
         unsigned long now = millis();
@@ -265,7 +277,11 @@ void MqttManager::publish_online()
 {
     char topic[64];
     snprintf(topic, sizeof(topic), "%s/%s/online", _mqtt_topic_prefix.c_str(), _device_id.c_str());
-    _mqtt_client.publish(topic, "1", true);
+    bool ok = _mqtt_client.publish(topic, "1", true);
+
+    #if ENABLE_STATUS_LED
+    if (ok) start_status_led_blink();
+    #endif
 
     Serial.println("Online = 1 pubblicato");
 }
@@ -330,10 +346,35 @@ void MqttManager::publish_json(const char* topic, JsonDocument& doc, bool retain
 {
     char buffer[256];
     size_t n = serializeJson(doc, buffer);
-    _mqtt_client.publish(topic, (const uint8_t*)buffer, n, retained);
+    bool ok = _mqtt_client.publish(topic, (const uint8_t*)buffer, n, retained);
+
+    #if ENABLE_STATUS_LED
+    if (ok) start_status_led_blink();
+    #endif
 
     Serial.print("Pubblicato su ");
     Serial.print(topic);
     Serial.print(": ");
     Serial.println(buffer);
+}
+
+// ── Blink status led onboard (GPIO16, attivo LOW) ────────────────
+void MqttManager::start_status_led_blink()
+{
+    #if ENABLE_STATUS_LED
+    digitalWrite(STATUS_LED_PIN, LOW);   // acceso
+    _led_off_at = millis() + STATUS_LED_BLINK_MS;
+    _led_blinking = true;
+    #endif
+}
+
+void MqttManager::update_status_led()
+{
+    #if ENABLE_STATUS_LED
+    if (_led_blinking && (long)(millis() - _led_off_at) >= 0)
+    {
+        digitalWrite(STATUS_LED_PIN, HIGH);   // spento
+        _led_blinking = false;
+    }
+    #endif
 }
