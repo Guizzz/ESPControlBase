@@ -36,6 +36,7 @@ Firmware generico per dispositivi ESP8266 domestici. Supporta sensori, display O
 | D1 | GPIO5 | Relay (active HIGH) |
 | D2 | GPIO4 | LED clock |
 | D3 | GPIO0 | Pulsante flash (INPUT_PULLUP, LOW = premuto) |
+| D4 | GPIO2 | LED blu status onboard (active LOW) |
 | D5 | GPIO14 | I2C SDA |
 | D6 | GPIO12 | I2C SCL |
 | D7 | GPIO13 | LED data |

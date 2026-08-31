@@ -34,14 +34,7 @@ MqttManager::MqttManager(
 // ── begin ─────────────────────────────────────────────────────────
 void MqttManager::begin()
 {
-    #if ENABLE_STATUS_LED
-    pinMode(STATUS_LED_PIN, OUTPUT);
-
-    // Lampo di verifica all'avvio (rimuovere dopo conferma)
-    digitalWrite(STATUS_LED_PIN, LOW);   // acceso
-    delay(200);
-    digitalWrite(STATUS_LED_PIN, HIGH);  // spento
-    #endif
+    
 
     connect_wifi();
 
@@ -278,6 +271,7 @@ void MqttManager::publish_online()
     char topic[64];
     snprintf(topic, sizeof(topic), "%s/%s/online", _mqtt_topic_prefix.c_str(), _device_id.c_str());
     bool ok = _mqtt_client.publish(topic, "1", true);
+    (void)ok;
 
     #if ENABLE_STATUS_LED
     if (ok) start_status_led_blink();
@@ -347,6 +341,7 @@ void MqttManager::publish_json(const char* topic, JsonDocument& doc, bool retain
     char buffer[256];
     size_t n = serializeJson(doc, buffer);
     bool ok = _mqtt_client.publish(topic, (const uint8_t*)buffer, n, retained);
+    (void)ok;
 
     #if ENABLE_STATUS_LED
     if (ok) start_status_led_blink();

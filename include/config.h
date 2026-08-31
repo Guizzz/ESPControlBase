@@ -29,11 +29,10 @@
 #define DISPLAY_TIMEOUT 5          // secondi prima dello spegnimento auto
 
 // ── Flag hardware ─────────────────────────────────────────────────
-#define ENABLE_DISPLAY      1
+#define ENABLE_DISPLAY      0
 #define ENABLE_SENSOR_GY21  1
-#define ENABLE_LED          0
+#define ENABLE_LED_STRIP          0
 #define ENABLE_RELAY        1
-#define ENABLE_STATUS_LED   1
 
 // ── OTA ────────────────────────────────────────────────────────
 #define OTA_HOSTNAME        "esp_control_base"
@@ -61,7 +60,7 @@
 #define LED_DATA        D7
 #define LED_CLOCK       D2
 
-#define STATUS_LED_PIN  D4          // GPIO2 - led blu onboard modulo ESP-12F (attivo LOW)
+#define STATUS_LED_PIN  D4          // GPIO2 - LED blu onboard modulo ESP-12F (attivo LOW)
 #define RELAY_PIN       D1          // GPIO5
 #define FLASH_BUTTON    D3          // GPIO0 - tasto flash integrato, LOW = premuto
 

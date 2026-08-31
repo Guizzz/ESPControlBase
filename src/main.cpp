@@ -1,33 +1,22 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include <config.h>
+#include <thread_manager.h>
+#include <request_manager.h>
+#include <mqtt_manager.h>
+#include <update_fw_manager.h>
 
 #if ENABLE_DISPLAY
 #include <display_manager.h>
 #endif
 
-#include <thread_manager.h>
-#include <request_manager.h>
-#include <mqtt_manager.h>
 
 #if ENABLE_SENSOR_GY21
 #include <GY_21.h>
 #endif
 
-#if ENABLE_LED
+#if ENABLE_LED_STRIP
 #include <ChainableLED.h>
-#endif
-
-#include <update_fw_manager.h>
-
-// ── Display OLED ──────────────────────────────────────────────────
-#if ENABLE_DISPLAY
-DisplayManager display_manager(DISPLAY_TIMEOUT * 1000UL);
-#endif
-
-// ── Sensori ───────────────────────────────────────────────────────
-#if ENABLE_SENSOR_GY21
-GY21 sensor;
 #endif
 
 // ── Gestori ───────────────────────────────────────────────────────
@@ -41,11 +30,23 @@ MqttManager mqtt_manager(
     STATUS_INTERVAL,
     MQTT_TOPIC_PREFIX
 );
-
 UpdateFWManager ota_manager;
+int status_counter_on = 0;
+int status_counter_off = 0;
+
+
+// ── Display OLED ──────────────────────────────────────────────────
+#if ENABLE_DISPLAY
+DisplayManager display_manager(DISPLAY_TIMEOUT * 1000UL);
+#endif
+
+// ── Sensori ───────────────────────────────────────────────────────
+#if ENABLE_SENSOR_GY21
+GY21 sensor;
+#endif
 
 // ── LED RGB ───────────────────────────────────────────────────────
-#if ENABLE_LED
+#if ENABLE_LED_STRIP
 ChainableLED leds(LED_CLOCK, LED_DATA, 1);
 bool running = false;
 float hue = 0.0;
@@ -63,7 +64,7 @@ unsigned long relay_on_time = 0;
 #endif
 
 // ── Gestione LED ──────────────────────────────────────────────────
-#if ENABLE_LED
+#if ENABLE_LED_STRIP
 void shutdown()
 {
     if (brightness <= 0.0)
@@ -99,6 +100,23 @@ void manage_led()
     #endif
 }
 #endif
+
+bool status_led = false;
+void manage_status_led()
+{   
+    if (!mqtt_manager.is_connected())
+        return;
+
+    if (status_counter_on % 10)
+        digitalWrite(STATUS_LED_PIN, HIGH);
+    else
+        digitalWrite(STATUS_LED_PIN, LOW);
+    status_counter_on ++;
+    
+    if (status_counter_on == 100)
+        status_counter_on = 0;
+
+}
 
 // ── Gestione Relay ────────────────────────────────────────────────
 #if ENABLE_RELAY
@@ -210,7 +228,7 @@ JsonDocument build_status()
     doc[RELAY_NAME]       = relay;
     #endif
 
-    #if ENABLE_LED
+    #if ENABLE_LED_STRIP
     doc["led"]         = running;
     #endif
 
@@ -237,7 +255,7 @@ JsonDocument set_relay(JsonDocument param)
 }
 #endif
 
-#if ENABLE_LED
+#if ENABLE_LED_STRIP
 JsonDocument set_led(JsonDocument param)
 {
     if (!param["value"].isNull())
@@ -275,6 +293,7 @@ void setup()
     #endif
 
     pinMode(FLASH_BUTTON, INPUT_PULLUP);
+    pinMode(STATUS_LED_PIN, OUTPUT);
 
     #if ENABLE_DISPLAY
     display_manager.begin();
@@ -283,7 +302,7 @@ void setup()
     #if ENABLE_RELAY
     mqtt_manager.on_command(RELAY_CMD, &set_relay, RELAY_NAME);
     #endif
-    #if ENABLE_LED
+    #if ENABLE_LED_STRIP
     mqtt_manager.on_command(LED_CMD, &set_led, LED_NAME);
     #endif
     mqtt_manager.on_status(&build_status);
@@ -295,12 +314,12 @@ void setup()
     #if ENABLE_RELAY
     request_manager.add_request("POST", "/set_relay", &set_relay);
     #endif
-    #if ENABLE_LED
+    #if ENABLE_LED_STRIP
     request_manager.add_request("POST", "/set_led",   &set_led);
     #endif
     
     // ── Thread periodici ──
-    #if ENABLE_LED
+    #if ENABLE_LED_STRIP
     threadManager.add_method(&manage_led, 50);
     #endif
     #if ENABLE_RELAY
@@ -333,6 +352,8 @@ void setup()
     
     // Avvio server HTTP legacy
     server.begin();
+
+    threadManager.add_method(&manage_status_led, 100);
 }
 
 // ── Loop ─────────────────────────────────────────────────────────

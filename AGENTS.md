@@ -27,6 +27,7 @@ pio test                 # test runner (test/ is empty scaffold)
 
 - SDA = D5, SCL = D6
 - LED: clock = D2, data = D7 (Grove Chainable RGB LED)
+- Status LED blu onboard = D4 (GPIO2), active LOW
 - Relay = D1 (GPIO5), active HIGH
 - Flash button = D3 (GPIO0), `INPUT_PULLUP`, `LOW` = pressed
 
